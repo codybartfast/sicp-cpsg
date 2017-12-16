@@ -22,12 +22,8 @@
 
 (-start- "3.26")
 
-; As 'table' is referring to the n-dimensional store need a different name
-; for the underlying store - the best I can come up with is 'dimension'.
-
-;(define (new-table-assoc) (list '*table*))
-
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; 'assoc' table
 
 (define (try-get-record-assoc table key)
   (assoc key (cdr table)))
@@ -46,11 +42,64 @@
   (set-cdr! record value))
 
     
-(define (make-table)
+(define (make-table-assoc)
   (make-table-generic try-get-record-assoc
                       get-record-assoc
                       update-record-assoc))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; binary table
+
+
+
+(define (entry tree) (car tree))
+(define (left-branch tree) (cadr tree))
+(define (right-branch tree) (caddr tree))
+(define (make-tree entry left right)
+  (list entry left right))
+  
+(define (lookup key get-key tree)
+  (if (null? tree)
+      #false
+      (let* ((record (entry tree))
+             (record-key (get-key record)))
+        (cond ((= key record-key) record)
+              ((> key record-key) (lookup key get-key (left-branch tree)))
+              ((< key record-key) (lookup key get-key (right-branch tree)))))))
+
+(define (adjoin-set x set)
+  (cond ((null? set) (make-tree x '() '()))
+        ((= x (entry set)) set)
+        ((< x (entry set))
+         (make-tree (entry set) 
+                    (adjoin-set x (left-branch set))
+                    (right-branch set)))
+        ((> x (entry set))
+         (make-tree (entry set)
+                    (left-branch set)
+                    (adjoin-set x (right-branch set))))))
+((lambda ()
+   (let ((pete '(1 "Peter Puds" 23 "Manchester"))
+         (jane '(2 "Jane Jigs" 45 "Brimingham"))
+         (anne '(3 "Anne Ack" 19 "Coventry"))
+         (mick '(4 "Mick Muck" 16 "Hastings"))
+         (fu   '(5 "Fu Manchu" 189 "Windsor")))
+     (define db (list pete
+                      (list mick
+                            '() (list anne '() '()))
+                      (list fu
+                            (list jane '()) '())))
+  
+     (define (get-key record) (car record))
+
+     (display (lookup 3 get-key db))))) ;(3 "Anne Ack" 19 Coventry))))
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; genric multi-dimensional table
 
 (define (make-table-generic try-get-record get-record update-record)
   (let
@@ -89,37 +138,38 @@
     dispatch))
 
 
+(lambda ()
+  (define table (make-table-assoc))
 
-(define table (make-table))
+  (prn "" "Adding 'apple and 'ant under single key.")  
+  (define key1a '('a))
+  (define key1b '(1))
+  (ignore ((table 'insert!) key1a 'apple))
+  (ignore ((table 'insert!) key1b 'ant))
 
-(prn "" "Adding 'apple and 'ant under single key.")  
-(define key1a '('a))
-(define key1b '(1))
-(ignore ((table 'insert!) key1a 'apple))
-(ignore ((table 'insert!) key1b 'ant))
+  (prn "" "Adding 'banana and 'bull under double keys.")  
+  (define key2a '('b 2))
+  (define key2b '('bb 22))
+  (ignore ((table 'insert!) key2a 'banana))
+  (ignore ((table 'insert!) key2b 'bull))
 
+  (prn "" "Adding 'cherry and 'cat under tripple  keys.")  
+  (define key3a '('c 2 'same))
+  (define key3b '('c 22 'same))
+  (ignore ((table 'insert!) key3a 'cherry))
+  (ignore ((table 'insert!) key3b 'cat))
 
-(prn "" "Adding 'banana and 'bull under double keys.")  
-(define key2a '('b 2))
-(define key2b '('bb 22))
-(ignore ((table 'insert!) key2a 'banana))
-(ignore ((table 'insert!) key2b 'bull))
+  (prn "" "Retrieving values:"
+       ((table 'lookup) key1a)
+       ((table 'lookup) key1b)
+       ((table 'lookup) key2a)
+       ((table 'lookup) key2b)
+       ((table 'lookup) key3a)
+       ((table 'lookup) key3b)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+                   
 
-(prn "" "Adding 'cherry and 'cat under tripple  keys.")  
-(define key3a '('c 2 'same))
-(define key3b '('c 22 'same))
-(ignore ((table 'insert!) key3a 'cherry))
-(ignore ((table 'insert!) key3b 'cat))
-
-
-(prn "" "Retrieving values:"
-     ((table 'lookup) key1a)
-     ((table 'lookup) key1b)
-     ((table 'lookup) key2a)
-     ((table 'lookup) key2b)
-     ((table 'lookup) key3a)
-     ((table 'lookup) key3b))
 
 
 
