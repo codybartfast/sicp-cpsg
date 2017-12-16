@@ -22,6 +22,18 @@
 
 (-start- "3.26")
 
+(prn "If going to implement this rather than just describe it, then suggest:
+   1. redo tree 'test' below so that db is built up programatically using
+      adjoin-set.
+   2. But first fix adjoin-set - it was never run in this context and
+      I think it constructs sets ordered sets rather than ordered records.
+      I.e., it should probably be 'adjoin-record'.
+   3. Create a few more tests to check above implementation.
+   4. Create methods to support make-table-generic.
+   5. If never want to get to Ex 3.27 then do something about
+      rebalancing the tree.")
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; 'assoc' table
 
